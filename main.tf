@@ -17,7 +17,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "webserver" {
-   name = "nginx-server-cedric-${var.environment}"
+   name = "nginx-server-cedric-Terraform"
    location = "francecentral"
 }
 
@@ -76,7 +76,7 @@ resource "azurerm_public_ip" "webserver_public_ip" {
    allocation_method = "Dynamic"
 
    tags = {
-       environment = var.environment
+       environment = "Default"
        costcenter = "it"
    }
 
@@ -128,7 +128,7 @@ resource "azurerm_linux_virtual_machine" "nginx" {
    }
 
    tags = {
-       environment = var.environment
+       environment = "default"
        costcenter = "it"
    }
 
