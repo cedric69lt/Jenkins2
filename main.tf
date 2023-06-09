@@ -99,6 +99,9 @@ resource "azurerm_network_interface" "webserver" {
        public_ip_address_id = azurerm_public_ip.webserver_public_ip.id
    }
 
+   depends_on = [azurerm_resource_group.test]
+}
+
 resource "azurerm_linux_virtual_machine" "nginx" {
    size = "Standard_F2"
    name = "nginx-webserver"
