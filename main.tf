@@ -16,16 +16,15 @@ provider "azurerm" {
    features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "cedrictestTerraform"
-  location = "francecentral"
+resource "azurerm_resource_group" "webserver" {
+   name = "nginx-server-cedric-${var.environment}"
+   location = var.location
 }
-
 
 resource "azurerm_network_security_group" "allowedports" {
    name = "allowedports"
-   resource_group_name = azurerm_resource_group.test.name
-   location = azurerm_resource_group.test.location
+   resource_group_name = azurerm_resource_group.webserver.name
+   location = azurerm_resource_group.webserver.location
   
    security_rule {
        name = "http"
@@ -64,33 +63,30 @@ resource "azurerm_network_security_group" "allowedports" {
    }
 }
 
-resource "azurerm_virtual_network" "webserver-net" {
-  name                = "webserver-net"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+resource "azurerm_subnet_network_security_group_association" "mgmt-nsg-association" {
+    subnet_id = azurerm_subnet.webserver-subnet.id
+    network_security_group_id = azurerm_network_security_group.allowedports.id
 }
 
-resource "azurerm_subnet" "webserver-subnet" {
-  name                 = "subnet01"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.webserver-net.name
-  address_prefixes       = ["10.0.1.0/24"]
-
-  private_link_service_network_policies_enabled = false
-}
 
 resource "azurerm_public_ip" "webserver_public_ip" {
    name = "webserver_public_ip"
-   location = "francecentral"
-   resource_group_name = azurerm_resource_group.test.name
+   location = var.location
+   resource_group_name = azurerm_resource_group.webserver.name
    allocation_method = "Dynamic"
+
+   tags = {
+       environment = var.environment
+       costcenter = "it"
+   }
+
+   depends_on = [azurerm_resource_group.webserver]
 }
 
 resource "azurerm_network_interface" "webserver" {
    name = "nginx-interface"
-   location = "francecentral"
-   resource_group_name = azurerm_resource_group.test.name
+   location = azurerm_resource_group.webserver.location
+   resource_group_name = azurerm_resource_group.webserver.name
 
    ip_configuration {
        name = "internal"
@@ -99,14 +95,15 @@ resource "azurerm_network_interface" "webserver" {
        public_ip_address_id = azurerm_public_ip.webserver_public_ip.id
    }
 
-   depends_on = [azurerm_resource_group.test]
+   depends_on = [azurerm_resource_group.webserver]
 }
 
 resource "azurerm_linux_virtual_machine" "nginx" {
-   size = "Standard_F2"
+   size = var.instance_size
    name = "nginx-webserver"
-   resource_group_name = azurerm_resource_group.test.name
-   location = azurerm_resource_group.test.location
+   resource_group_name = azurerm_resource_group.webserver.name
+   location = azurerm_resource_group.webserver.location
+   custom_data = base64encode(file("init-script.sh"))
    network_interface_ids = [
        azurerm_network_interface.webserver.id,
    ]
@@ -119,8 +116,8 @@ resource "azurerm_linux_virtual_machine" "nginx" {
    }
 
    computer_name = "nginx"
-   admin_username = "azureuser"
-   admin_password = "Azertyty123!"
+   admin_username = "adminuser"
+   admin_password = "Faizan@bashir.123"
    disable_password_authentication = false
 
    os_disk {
@@ -129,3 +126,11 @@ resource "azurerm_linux_virtual_machine" "nginx" {
        #create_option = "FromImage"
        storage_account_type = "Standard_LRS"
    }
+
+   tags = {
+       environment = var.environment
+       costcenter = "it"
+   }
+
+   depends_on = [azurerm_resource_group.webserver]
+}
