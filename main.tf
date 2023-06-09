@@ -20,37 +20,3 @@ resource "azurerm_resource_group" "test" {
   name     = "cedrictestTerraform"
   location = "francecentral"
 }
-
-resource "azurerm_linux_virtual_machine" "nginx" {
-   size = "Standard_F2"
-   name = "CedricVmTerratest"
-   resource_group_name = azurerm_resource_group.test.name
-   location = azurerm_resource_group.test.location
-   network_interface_ids = [
-       azurerm_network_interface.webserver.id,
-   ]
-
-   source_image_reference {
-       publisher = "Canonical"
-       offer = "UbuntuServer"
-       sku = "18.04-LTS"
-       version = "latest"
-   }
-
-   computer_name = "nginx"
-   admin_username = "adminuser"
-   admin_password = "Faizan@bashir.123"
-   disable_password_authentication = false
-
-   os_disk {
-       name = "nginxdisk01"
-       caching = "ReadWrite"
-       #create_option = "FromImage"
-       storage_account_type = "Standard_LRS"
-   }
-
-   tags = {
-       environment = var.environment
-       costcenter = "it"
-   }
-
