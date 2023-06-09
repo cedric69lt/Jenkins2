@@ -18,7 +18,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "webserver" {
    name = "nginx-server-cedric-${var.environment}"
-   location = var.location
+   location = "francecentral"
 }
 
 resource "azurerm_network_security_group" "allowedports" {
@@ -71,7 +71,7 @@ resource "azurerm_subnet_network_security_group_association" "mgmt-nsg-associati
 
 resource "azurerm_public_ip" "webserver_public_ip" {
    name = "webserver_public_ip"
-   location = var.location
+   location = "francecentral"
    resource_group_name = azurerm_resource_group.webserver.name
    allocation_method = "Dynamic"
 
