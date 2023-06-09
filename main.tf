@@ -18,5 +18,5 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "cedrictestTerraform"
-  location = "West Europe"
+  location = "francecentral"
 }
